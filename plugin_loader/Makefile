@@ -30,11 +30,11 @@ EXTRAFLAGS := $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall -D__PRX_BUILD
 # Root vars
 TOOLCHAIN     := $(OO_PS4_TOOLCHAIN)
 GH_SDK        := $(GOLDHEN_SDK)
-EXTERNAL_DIR  := ../../external
+EXTERNAL_DIR  := ../external
 PROJDIR       := ../$(shell basename $(CURDIR))/source
 INTDIR        := ../$(shell basename $(CURDIR))/build
 INCLUDEDIR    := ../$(shell basename $(CURDIR))/include
-COMMON_DIR    := ../../common
+COMMON_DIR    := ../common
 
 # Define objects to build
 CFILES      := $(wildcard $(PROJDIR)/*.c)
