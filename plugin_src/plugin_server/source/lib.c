@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
-#include "../../../common/plugin_common.h"
-#include "../../../common/notify.h"
+#include "plugin_common.h"
+#include "common/notify.h"
 
 #include "extern/libjbc/libjbc.h"
 
