@@ -1,5 +1,5 @@
 #include "git_ver.h"
-#include <Common.h>
+//#include <Common.h>
 
 #define GOLDHEN_PATH "/data/GoldHEN"
 
