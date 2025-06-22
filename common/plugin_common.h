@@ -1,7 +1,7 @@
 #include "git_ver.h"
 #include <Common.h>
 
-#define GOLDHEN_PATH "/data/lso"
+#define GOLDHEN_PATH "/data/GoldHEN"
 
 #define u8  uint8_t
 #define u16 uint16_t
