@@ -12,7 +12,7 @@
 
 #include <orbis/libkernel.h>
 
-#include "plugin_common.h"
+#include "../../common/plugin_common.h"
 #include "config.h"
 
 #define PLUGIN_CONFIG_PATH GOLDHEN_PATH "/plugins.ini"
