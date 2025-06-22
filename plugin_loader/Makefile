@@ -34,7 +34,7 @@ EXTERNAL_DIR  := ../../external
 PROJDIR       := ../$(shell basename $(CURDIR))/source
 INTDIR        := ../$(shell basename $(CURDIR))/build
 INCLUDEDIR    := ../$(shell basename $(CURDIR))/include
-COMMON_DIR    := ../../common
+COMMON_DIR    := ../common
 
 # Define objects to build
 CFILES      := $(wildcard $(PROJDIR)/*.c)
