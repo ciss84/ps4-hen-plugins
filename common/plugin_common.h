@@ -13,7 +13,7 @@
 #define s64 int64_t
 #define f32 float
 #define f64 double
-#define TEX_ICON_SYSTEM "https://ciss84.github.io/GtaVModOnlinePng/icon1.png" //"cxml://psnotification/tex_default_icon_cloud_client" //"cxml://psnotification/tex_icon_system"
+//#define TEX_ICON_SYSTEM "https://ciss84.github.io/GtaVModOnlinePng/icon1.png" //"cxml://psnotification/tex_default_icon_cloud_client" //"cxml://psnotification/tex_icon_system"
 
 #define MAX_PATH_ 260
 

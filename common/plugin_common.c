@@ -18,7 +18,7 @@ void NotifyStatic(const char* IconUri, const char* text) {
 }
 
 // For formatted strings
-void Notify(const char* IconUri, const char *FMT, ...) {
+/*void Notify(const char* IconUri, const char *FMT, ...) {
     OrbisNotificationRequest Buffer;
     va_list args;
     va_start(args, FMT);
@@ -31,4 +31,4 @@ void Notify(const char* IconUri, const char *FMT, ...) {
     Buffer.targetId = -1;
     strcpy(Buffer.iconUri, IconUri);
     sceKernelSendNotificationRequest(0, &Buffer, sizeof(Buffer), 0);
-}
+}*/
