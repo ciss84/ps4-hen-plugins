@@ -8,7 +8,7 @@
 #define _atoi atoi
 
 /// https://github.com/Teklad/tconfig > https://github.com/gimli2/tconfig
-#include "config.h"
+#include "../include/config.h"
 
 static ini_entry_s *_ini_entry_create(ini_section_s *section, const char *key, const char *value) {
     if ((section->size % 10) == 0) {
