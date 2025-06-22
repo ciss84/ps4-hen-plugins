@@ -1,12 +1,8 @@
 # Library metadata.
 
 DEBUG_FLAGS = -D__FINAL__=1
-LOG_TYPE = -D__USE_KLOG__
+LOG_TYPE = -D__USE_PRINTF__
 BUILD_TYPE = _final
-
-ifeq ($(PRINTF),1)
-    LOG_TYPE = -D__USE_PRINTF__
-endif
 
 ifeq ($(DEBUG),1)
     DEBUG_FLAGS = -D__FINAL__=0
@@ -15,26 +11,24 @@ endif
 
 TYPE         := $(BUILD_TYPE)
 FINAL        := $(DEBUG_FLAGS)
-BUILD_FOLDER := $(shell pwd)/../../bin/plugins
+BUILD_FOLDER := $(shell pwd)/../bin/plugins
 OUTPUT_PRX   := $(shell basename $(CURDIR))
 TARGET       := $(BUILD_FOLDER)/prx$(TYPE)/$(OUTPUT_PRX)
 TARGET_ELF   := $(BUILD_FOLDER)/elf$(TYPE)/$(OUTPUT_PRX)
 TARGETSTUB   := $(OUTPUT_PRX).so
+COMMON_DIR    := ../common
 
 # Libraries linked into the ELF.
-LIBS := -lGoldHEN_Hook -lkernel -lSceLibcInternal -lSceSysmodule 
+LIBS := -lSceLibcInternal -lkernel -lc -lc++
 
-EXTRAFLAGS := $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall -D__PRX_BUILD__
+EXTRAFLAGS := $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
 
 # You likely won't need to touch anything below this point.
 # Root vars
 TOOLCHAIN     := $(OO_PS4_TOOLCHAIN)
-GH_SDK        := $(GOLDHEN_SDK)
-EXTERNAL_DIR  := ../../external
 PROJDIR       := ../$(shell basename $(CURDIR))/source
 INTDIR        := ../$(shell basename $(CURDIR))/build
 INCLUDEDIR    := ../$(shell basename $(CURDIR))/include
-COMMON_DIR    := ../common
 
 # Define objects to build
 CFILES      := $(wildcard $(PROJDIR)/*.c)
@@ -44,12 +38,9 @@ OBJS        := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $
 STUBOBJS    := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $(PROJDIR)/%.cpp, $(INTDIR)/%.o.stub, $(CPPFILES)) $(patsubst $(COMMONDIR)/%.cpp, $(INTDIR)/%.o.stub, $(COMMONFILES))
 
 # Define final C/C++ flags
-CFLAGS      := $(FINAL) --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(GH_SDK)/include -I$(INCLUDEDIR) -I$(EXTERNAL_DIR) -I$(COMMON_DIR) $(O_FLAG)
-CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/$(INCLUDEDIR)/c++/v1
-LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib -L$(GH_SDK) $(LIBS) 
-
-# Create the intermediate directory incase it doesn't already exist.
-_unused     := $(shell mkdir -p $(INTDIR))
+CFLAGS      := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include
+CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/include/c++/v1
+LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib $(LIBS) $(TOOLCHAIN)/lib/crtlib.o
 
 # Check for linux vs macOS and account for clang/ld path
 UNAME_S     := $(shell uname -s)
@@ -67,9 +58,18 @@ ifeq ($(UNAME_S),Darwin)
         CDIR    := macos
 endif
 
-$(TARGET): $(INTDIR) $(OBJS)
-	$(LD) $(GH_SDK)/build/crtprx.o $(INTDIR)/*.o -o $(TARGET_ELF).elf $(LDFLAGS)
-	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(TARGET_ELF).elf -out=$(TARGET_ELF).oelf --lib=$(TARGET).sprx --paid 0x3800000000000011
+$(INTDIR):
+	mkdir -p $(INTDIR)
+
+$(BUILD_FOLDER)/prx$(TYPE):
+	mkdir -p $(BUILD_FOLDER)/prx$(TYPE)
+
+$(BUILD_FOLDER)/elf$(TYPE):
+	mkdir -p $(BUILD_FOLDER)/elf$(TYPE)
+
+$(TARGET): $(INTDIR) $(BUILD_FOLDER)/prx$(TYPE) $(BUILD_FOLDER)/elf$(TYPE) $(OBJS)
+	$(LD) $(INTDIR)/*.o -o $(TARGET_ELF).elf $(LDFLAGS)
+	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(TARGET_ELF).elf -out=$(TARGET_ELF).oelf --lib=$(TARGET).prx --paid 0x3800000000000011
 
 $(TARGETSTUB): $(INTDIR) $(STUBOBJS)
 	$(CC) $(INTDIR)/*.o.stub -o $(TARGETSTUB) -target x86_64-pc-linux-gnu -shared -fuse-ld=lld -ffreestanding -nostdlib -fno-builtin -L$(TOOLCHAIN)/lib $(LIBS)
@@ -86,11 +86,6 @@ $(INTDIR)/%.o.stub: $(PROJDIR)/%.c
 $(INTDIR)/%.o.stub: $(PROJDIR)/%.cpp
 	$(CCX) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC $(O_FLAG) -s -c -o $@ $<
 
-plugin_common:
-	mv $(COMMON_DIR)/plugin_common.c $(COMMON_DIR)/plugin_common.cpp
-	$(CCX) $(CXXFLAGS) -o $(INTDIR)/plugin_common.o $(COMMON_DIR)/plugin_common.cpp
-	mv $(COMMON_DIR)/plugin_common.cpp $(COMMON_DIR)/plugin_common.c
-
 build-info:
 	$(shell echo "#define GIT_COMMIT \"$(shell git rev-parse HEAD)\"" > $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_VER \"$(shell git branch --show-current)\"" >> $(COMMON_DIR)/git_ver.h)
@@ -100,7 +95,7 @@ build-info:
 .PHONY: clean
 .DEFAULT_GOAL := all
 
-all: build-info plugin_common $(TARGET)
+all: build-info $(TARGET)
 
 clean:
 	rm -rf $(TARGET) $(TARGETSTUB) $(INTDIR) $(OBJS)

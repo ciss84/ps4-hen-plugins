@@ -4,6 +4,18 @@
 
 #define TEX_ICON_SYSTEM "cxml://psnotification/tex_icon_system"
 
+static void NotifyStatic(const char* IconUri, const char* text) {
+    OrbisNotificationRequest Buffer;
+    final_printf("Notify text:\n%s\n", text);
+    Buffer.type = NotificationRequest;
+    Buffer.unk3 = 0;
+    Buffer.useIconImageUri = 1;
+    Buffer.targetId = -1;
+    strcpy(Buffer.message, text);
+    strcpy(Buffer.iconUri, IconUri);
+    sceKernelSendNotificationRequest(0, &Buffer, sizeof(Buffer), 0);
+}
+
 // For formatted strings
 static void Notify(const char* IconUri, const char* FMT, ...)
 {
