@@ -16,8 +16,8 @@ along with this program; see the file COPYING. If not, see
 
 #include <stdint.h>
 #include <stdio.h>
-#include "../../common/plugin_common.h"
-#include "../../common/notify.h"
+#include "../../../common/plugin_common.h"
+#include "../../../common/notify.h"
 
 #include <arpa/inet.h>
 #include <fcntl.h>
