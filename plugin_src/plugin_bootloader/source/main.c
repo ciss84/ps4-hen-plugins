@@ -2,8 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "../../../plugin_common.h"
-#include "../../../notify.h"
+#include "../../plugin_common.h"
+#include "../../notify.h"
 
 attr_public const char* g_pluginName = "bootloader";
 attr_public const char* g_pluginDesc = "Bootloader plugin.";
