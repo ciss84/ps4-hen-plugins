@@ -4,7 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "plugin_common.h"
+#include "../common/plugin_common.h"
 #define _atoi atoi
 
 /// https://github.com/Teklad/tconfig > https://github.com/gimli2/tconfig
