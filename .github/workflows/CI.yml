@@ -35,6 +35,12 @@ jobs:
         fetch-depth: 0
         submodules: recursive
 
+    - name: Checkout SDK
+      uses: actions/checkout@v4
+      with:
+        repository: ciss84/GoldHEN_Plugins_SDK
+        path: SDK
+
     - name: Setup variables
       run: |
         sudo apt install llvm lld
@@ -49,6 +55,10 @@ jobs:
         tar -xzf toolchain-llvm-18.tar.gz -C ./
         ls .
         echo "OO_PS4_TOOLCHAIN=$PWD/OpenOrbis/PS4Toolchain" >> $GITHUB_ENV
+
+    - name: Export path to SDK
+      working-directory: SDK
+      run: echo "GOLDHEN_SDK=$(pwd)" >> $GITHUB_ENV
 
     - name: Build bootloader
       run: make -C plugin_bootloader
