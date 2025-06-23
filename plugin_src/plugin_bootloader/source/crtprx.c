@@ -32,7 +32,7 @@ int _init(size_t args, const void* argp)
     return 0;
 }
 
-int _fini(size_t args, const void* argp)
+/*int _fini(size_t args, const void* argp)
 {
     return 0;
-}
+}*/
