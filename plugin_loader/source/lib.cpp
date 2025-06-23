@@ -19,7 +19,7 @@
 attr_public const char *g_pluginName = "plugin_loader";
 attr_public const char *g_pluginDesc = "Plugin loader for GoldHEN";
 attr_public const char *g_pluginAuth = "Ctn123, illusion";
-attr_public u32 g_pluginVersion = 0x00000110; // 1.10
+attr_public uint32_t g_pluginVersion = 0x00000110; // 1.10
 
 char g_PluginDetails[256] = {0};
 

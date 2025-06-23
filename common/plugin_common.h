@@ -2,6 +2,8 @@
 
 #define MAX_PATH_ 260
 
+#define GOLDHEN_PATH "/data/GoldHEN"
+
 #define attr_module_hidden __attribute__((weak)) __attribute__((visibility("hidden")))
 #define attr_public __attribute__((visibility("default")))
 
