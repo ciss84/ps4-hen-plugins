@@ -3,13 +3,13 @@
 #include <sstream>
 #include <stdbool.h>
 #include <string.h>
-//#include "GoldHEN.h"
+#include "../include/GoldHEN.h"
 
 #include <orbis/libkernel.h>
 
 #include "../../common/plugin_common.h"
 #include "../../common/notify.h"
-#include "config.h"
+#include "../include/config.h"
 
 #define PLUGIN_CONFIG_PATH GOLDHEN_PATH "/plugins.ini"
 #define PLUGIN_PATH GOLDHEN_PATH "/plugins"
