@@ -226,7 +226,7 @@ extern "C" int plugin_load(int* argc, const char** argv)
 {
     final_printf("[GoldHEN] <%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);
     final_printf("[GoldHEN] Plugin Author(s): %s\n", g_pluginAuth);
-    boot_ver();
+    //boot_ver();
 
     // Better done in GoldHEN
     mkdir(PLUGIN_PATH, 0777);
