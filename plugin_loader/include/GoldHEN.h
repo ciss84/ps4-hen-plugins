@@ -52,6 +52,7 @@ struct proc_hook {
 #define GOLDHEN_SDK_CMD_JAILBREAK          2
 #define GOLDHEN_SDK_CMD_UNJAILBREAK        3
 #define GOLDHEN_SDK_CMD_PROCESS_INFO       4
+#define GOLDHEN_SDK_VERSION       0x00000100 // 1.00
 
 extern int sys_sdk_cmd(uint64_t cmd, void *data);
 
