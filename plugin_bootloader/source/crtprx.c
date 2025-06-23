@@ -27,12 +27,12 @@ __asm__(
     "	.quad 	0 \n"
     ".att_syntax prefix \n");
 
-/*int _init(size_t args, const void* argp)
+int _init(size_t args, const void* argp)
 {
     return 0;
-}*/
+}
 
-/*int _fini(size_t args, const void* argp)
+int _fini(size_t args, const void* argp)
 {
     return 0;
-}*/
+}
