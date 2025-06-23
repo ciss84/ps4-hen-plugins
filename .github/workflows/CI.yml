@@ -114,7 +114,7 @@ jobs:
         do
         if  [[ "$f" == "$BUILD/game_call_example.prx" ]] ||
             [[ "$f" == "$BUILD/plugin_loader.prx" ]] ||
-            [[ "$f" == "$BUILD/plugin_template.prx" ]]; then
+            [[ "$f" == "$BUILD/plugin_bootloader.prx" ]]; then
             echo "[+] Skipping $f"
             rm $f
             continue
