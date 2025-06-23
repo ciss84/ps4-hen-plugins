@@ -16,7 +16,7 @@ OUTPUT_PRX   := $(shell basename $(CURDIR))
 TARGET       := $(BUILD_FOLDER)/prx$(TYPE)/$(OUTPUT_PRX)
 TARGET_ELF   := $(BUILD_FOLDER)/elf$(TYPE)/$(OUTPUT_PRX)
 TARGETSTUB   := $(OUTPUT_PRX).so
-COMMON_DIR    := ../common
+COMMON_DIR    := ../../common
 
 # Libraries linked into the ELF.
 LIBS := -lSceLibcInternal -lkernel -lc -lc++
