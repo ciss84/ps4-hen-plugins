@@ -14,9 +14,10 @@ attr_public const char* g_pluginAuth = "illusiony";
 attr_public uint32_t g_pluginVersion = 0x00000100;  // 1.00
 
 void* pthread_kserver(void* args);
-void* pthread_temp(void* args);
 
 int ftp_main(void);
+
+int temp_main(void);
 
 // Verify jailbreak
 static int is_jailbroken(void)

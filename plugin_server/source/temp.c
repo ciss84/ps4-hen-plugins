@@ -6,9 +6,8 @@
 #include <pthread.h>
 #include <unistd.h>
 
-void* pthread_temp(void* args)
+int temp_main(void)
 {
-    (void)args;
     int (*sceKernelGetCpuTemperature)(int *);
     int (*sceKernelGetSocSensorTemperature)(int, int *);
     while (1)
