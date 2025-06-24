@@ -1,3 +1,8 @@
+#include <stdint.h>
+#include <stdio.h>
+#include "../../common/plugin_common.h"
+#include "../../common/notify.h"
+
 void* pthread_temp(void* args)
 {
     (void)args;
