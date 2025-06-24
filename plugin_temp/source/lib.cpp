@@ -12,13 +12,12 @@ attr_public const char* g_pluginDesc = "Demonstrate usage of CXX in module. Base
 attr_public const char* g_pluginAuth = "illusiony";
 attr_public uint32_t g_pluginVersion = 0x00000100;  // 1.00
 
-int temp;
-uint32_t (*sceKernelGetCpuTemperature)(uint32_t *);
-uint32_t (*sceKernelGetSocSensorTemperature)(uint32_t, uint32_t *);
+static uint32_t (*sceKernelGetCpuTemperature)(uint32_t *);
+static uint32_t (*sceKernelGetSocSensorTemperature)(uint32_t, uint32_t *);
 
 int plugin_load(int* argc, const char** argv)
 {
-  temp= 1;
+  int temp = 1;
   while (temp) {
   uint32_t CPU_Temp;
   uint32_t SOC_Temp;
