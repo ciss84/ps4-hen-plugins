@@ -73,6 +73,45 @@ void* pthread_ftp(void* args)
     return 0;
 }
 
+void* pthread_temp(void* args)
+{
+    // Variables for (un)jailbreaking
+    // https://github.com/bucanero/apollo-ps4/blob/461ee5d58653a82ab4b901041a3cc0b7026bfffb/source/orbis_jbc.c#L243
+    static jbc_cred g_Cred;
+    static jbc_cred g_RootCreds;
+    jbc_get_cred(&g_Cred);
+    g_RootCreds = g_Cred;
+    jbc_jailbreak_cred(&g_RootCreds);
+    jbc_set_cred(&g_RootCreds);
+
+    if (is_jailbroken())
+    {
+#if LOG_PRINTF_TO_TTY
+        int open(const char*, int);
+        int close(int);
+        const int O_WRONLY = 2;
+        const int stdout_ = 1;
+        const int stderr_ = 2;
+        const int fd = open("/dev/console", O_WRONLY);
+        if (fd > 0)
+        {
+            dup2(fd, stdout_);
+            dup2(stdout_, stderr_);
+            close(fd);
+        }
+        Notify("", "console fd %d", fd);
+#endif
+        temp_main();
+    }
+    else
+    {
+        Notify(TEX_ICON_SYSTEM,
+               "Failed to jailbreak process!\n"
+               "FTP will not start.\n");
+    }
+    return 0;
+}
+
 int plugin_load(int* argc, const char** argv)
 {
     pthread_t pthrd = 0;
