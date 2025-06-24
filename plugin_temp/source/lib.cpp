@@ -16,7 +16,7 @@ int temp;
 uint32_t (*sceKernelGetCpuTemperature)(uint32_t *);
 uint32_t (*sceKernelGetSocSensorTemperature)(uint32_t, uint32_t *);
 
-extern "C" int plugin_load(int* argc, const char** argv)
+int plugin_load(int* argc, const char** argv)
 {
   temp= 1;
   while (temp) {
@@ -24,7 +24,7 @@ extern "C" int plugin_load(int* argc, const char** argv)
   uint32_t SOC_Temp;
   uint32_t ret = sceKernelGetCpuTemperature(&CPU_Temp);
   uint32_t retb = sceKernelGetSocSensorTemperature(0, &SOC_Temp);
-  sleep(100);
+  sceKernelSleep(100);
   printf("returned %d\n%i", ret, retb);
   Notify(TEX_ICON_SYSTEM, "Temperature\n*Cpu: %d*C\n*Soc: %i*C", CPU_Temp, SOC_Temp);
   }
