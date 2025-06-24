@@ -5,7 +5,7 @@
 #define TEX_ICON_SYSTEM "/user/data/icon0.png"
 
 // For formatted strings
-static void Notify(const char* IconUri, const char* FMT, ...)
+static void Notify(const char* IconUri, ...)
 {
     OrbisNotificationRequest Buffer = {};
     va_list args;
