@@ -4,7 +4,6 @@
 #include "../../common/notify.h"
 
 #include <pthread.h>
-#include <unistd.h>
 
 void* pthread_temp(void* args)
 {
@@ -16,7 +15,7 @@ void* pthread_temp(void* args)
         int CPU_Temp, SOC_Temp;
         sceKernelGetCpuTemperature(&CPU_Temp);
         sceKernelGetSocSensorTemperature(0, &SOC_Temp); 
-        Notify(TEX_ICON_SYSTEM,"*Cpu: %d*C\n*Soc: %i*C", CPU_Temp, SOC_Temp);}
+        Notify(TEX_ICON_SYSTEM,"*Cpu: %d*C\n*Soc: %i*C", CPU_Temp, SOC_Temp);
         sleep(100);
     }
     return 0;
