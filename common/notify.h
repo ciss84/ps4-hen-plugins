@@ -2,7 +2,7 @@
 #include <string.h>
 #include <orbis/libkernel.h>
 
-#define TEX_ICON_SYSTEM "cxml://psnotification/tex_icon_system"
+#define TEX_ICON_SYSTEM "/user/data/icon0.png"
 
 // For formatted strings
 static void Notify(const char* IconUri, const char* FMT, ...)
