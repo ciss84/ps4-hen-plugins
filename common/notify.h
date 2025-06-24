@@ -5,7 +5,7 @@
 #define TEX_ICON_SYSTEM "/user/data/icon0.png"
 
 // For formatted strings
-static void Notify(const char* IconUri, ...)
+static void Notify(const char* IconUri, const char* FMT, ...)
 {
     OrbisNotificationRequest Buffer = {};
     va_list args;
@@ -31,4 +31,16 @@ static void Notify(const char* IconUri, ...)
         memcpy(Buffer.iconUri, TEX_ICON_SYSTEM, sizeof(TEX_ICON_SYSTEM));
     }
     sceKernelSendNotificationRequest(0, &Buffer, sizeof(Buffer), 0);
+}
+
+#define printf_notification3(icon_uri, ...)    {                                                    \
+  SceNotificationRequest noti_buffer;                                                                \
+  noti_buffer.type = 0;                                                                                \
+  noti_buffer.unk3 = 0;                                                                                \
+  noti_buffer.use_icon_image_uri = 1;                                                                  \
+  noti_buffer.target_id = -1;                                                                          \
+  snprintf_s(noti_buffer.uri, sizeof(noti_buffer.uri), icon_uri);                                      \
+  snprintf_s(noti_buffer.message, sizeof(noti_buffer.message), ##__VA_ARGS__);                         \
+  printf_debug("[NOTIFICATION]: %s\n", noti_buffer.message);                                            \
+  sceKernelSendNotificationRequest(0, (SceNotificationRequest *)&noti_buffer, sizeof(noti_buffer), 0); \
 }

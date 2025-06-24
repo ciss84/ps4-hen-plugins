@@ -22,7 +22,7 @@ extern "C" int plugin_load(int* argc, const char** argv)
             uint32_t CPU_Temp, SOC_Temp;
             sceKernelGetCpuTemperature(&CPU_Temp);
             sceKernelGetSocSensorTemperature(0, &SOC_Temp);
-            Notify("*Cpu: %d*C\n*Soc: %i*C", CPU_Temp, SOC_Temp);
+            printf_notification3("*Cpu: %d*C\n*Soc: %i*C", CPU_Temp, SOC_Temp);
             sceKernelSleep(100);
         }
     return 0;
