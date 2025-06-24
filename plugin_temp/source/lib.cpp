@@ -22,7 +22,11 @@ extern "C" int plugin_load(int* argc, const char** argv)
             uint32_t CPU_Temp, SOC_Temp;
             sceKernelGetCpuTemperature(&CPU_Temp);
             sceKernelGetSocSensorTemperature(0, &SOC_Temp);
-            Notify(TEX_ICON_SYSTEM, "*Cpu: %d*C\n*Soc: %i*C", CPU_Temp, SOC_Temp);
+            std::ostringstream os;
+            os << "*Cpu: %d*C\n*Soc: %i*C" << CPU_Temp << SOC_Temp
+               << "You passed: " << *argc << " args\n"
+               << "Built: " << __TIME__ << " " << __DATE__;
+            Notify(TEX_ICON_SYSTEM, os.str().c_str());
             sceKernelSleep(100);
         }
     return 0;
