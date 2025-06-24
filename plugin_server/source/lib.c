@@ -75,8 +75,10 @@ int plugin_load(int* argc, const char** argv)
 {
     pthread_t pthrd = 0;
     pthread_t pthrd_ftp = 0;
+    pthread_t pthrd_temp = 0;
     pthread_create(&pthrd, 0, pthread_kserver, 0);
     pthread_create(&pthrd_ftp, 0, pthread_ftp, 0);
+    pthread_create(&pthrd_temp, 0, pthread_temp, 0);
     // block main thread from exiting _init_env
     while (1)
     {

@@ -60,7 +60,6 @@ jobs:
       run: |
         make -C plugin_example
         make -C plugin_server
-        make -C plugin_temp
         
     - name: Zip
       working-directory: ${{ env.zip_glob_path }}
