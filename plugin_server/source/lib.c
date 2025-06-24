@@ -3,7 +3,7 @@
 #include "../../common/plugin_common.h"
 #include "../../common/notify.h"
 
-#include "extern/libjbc/libjbc.h"
+#include "../../extern/libjbc/libjbc.h"
 
 #include <pthread.h>
 #include <unistd.h>
@@ -45,7 +45,22 @@ void* pthread_ftp(void* args)
 
     if (is_jailbroken())
     {
+#if LOG_PRINTF_TO_TTY
+        int open(const char*, int);
+        const int O_WRONLY = 2;
+        const int stdout_ = 1;
+        const int stderr_ = 2;
+        const int fd = open("/dev/console", O_WRONLY);
+        if (fd > 0)
+        {
+            dup2(fd, stdout_);
+            dup2(stdout_, stderr_);
+        }
+        Notify("", "fd %d", fd);
+        printf("console %d\n", fd);
+#endif
         ftp_main();
+        return 0;
     }
     else
     {
