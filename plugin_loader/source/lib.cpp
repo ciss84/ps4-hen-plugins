@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
-#include <sstream>
 
 #include <orbis/libkernel.h>
 
