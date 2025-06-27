@@ -220,8 +220,205 @@ static void load_plugins(ini_section_s *section, uint32_t *load_count, int argc,
     }
 }
 
-static int load(int *argc, char **argv)
+/*static int load(int *argc, char **argv)
 {
+    // Better done in GoldHEN
+    mkdir(PLUGIN_PATH, 0777);
+
+    struct proc_info procInfo = {0};
+
+    if (sys_sdk_proc_info(&procInfo) == 0)
+    {
+        print_proc_info();
+    } else
+    {
+        final_printf("Plugin Manager failed to initialise\n");
+        return -1;
+    }
+
+    final_printf("Plugin Manager started successfully\n");
+
+
+    // Better done in GoldHEN
+    if (!file_exists(PLUGIN_CONFIG_PATH))
+    {
+       final_printf("Plugin config %s not found\n", PLUGIN_CONFIG_PATH);
+       create_template_config();
+       return -1;
+    }
+
+
+    ini_table_s *config = ini_table_create();
+    if (config == NULL)
+    {
+        final_printf("Config parser failed to initialise\n");
+        return -1;
+    }
+
+    if (!ini_table_read_from_file(config, PLUGIN_CONFIG_PATH))
+    {
+        final_printf("Config parser failed to parse config: %s\n", PLUGIN_CONFIG_PATH);
+        return -1;
+    }*/
+
+    /*
+    ini_section_s *section = _ini_section_find(config, PLUGIN_DEFAULT_SECTION);
+    if (section == NULL)
+    {
+        final_printf("%s section not found\n", PLUGIN_DEFAULT_SECTION);
+        return -1;
+    }
+    */
+
+    // final_printf("Section is TitleID [%s]\n", procInfo.titleid);
+    /*bool show_load_notification = false;
+    uint32_t load_count = 0;
+
+    for (uint32_t i = 0; i < config->size; i++)
+    {
+        ini_section_s *section = &config->section[i];
+
+        if (section == NULL)
+            continue;
+
+        if (strcmp(section->name, PLUGIN_SETTINGS_SECTION) == 0)
+        {
+            final_printf("Section [%s] is settings\n", section->name);
+            for (uint16_t j = 0; j < section->size; j++)
+            {
+                ini_entry_s *entry = &section->entry[j];
+                final_printf("%s=%s\n", entry->key, entry->value);
+                if (strcmp("show_load_notification", entry->key) == 0)
+                {
+                    show_load_notification = simple_get_bool(entry->value);
+                    final_printf("%s=%u\n", entry->key, show_load_notification);
+                }
+            }
+        }
+
+        if (strcmp(section->name, PLUGIN_DEFAULT_SECTION) == 0)
+        {
+            final_printf("Section [%s] is default\n", section->name);
+            load_plugins(section, &load_count, *argc, argv);
+        }
+        else if (strcmp(section->name, procInfo.titleid) == 0)
+        {
+            final_printf("Section is TitleID [%s]\n", procInfo.titleid);
+            load_plugins(section, &load_count, *argc, argv);
+        }
+    }
+
+    if (show_load_notification)
+    {
+        if (load_count > 0)
+        {
+            char notify_msg[128] = {0};
+            // trim newline
+            size_t PluginLen = strlen(g_PluginDetails) - 1;
+            if (g_PluginDetails[PluginLen] == '\n')
+            {
+                g_PluginDetails[PluginLen] = '\0';
+            }
+            snprintf(notify_msg, sizeof(notify_msg), "Loaded %u plugin(s)\n%s", load_count, g_PluginDetails);
+            //NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
+        }
+    }
+
+    if (config != NULL)
+    {
+        ini_table_destroy(config);
+    }
+    return 0;
+}*/
+
+static s32 get_module_info(const char *name, OrbisKernelModuleInfo *module_out, uint32_t *handle_out)
+{
+    OrbisKernelModule handles[256] = {0};
+    size_t numModules = 0;
+    s32 ret = 0;
+    ret = sceKernelGetModuleList(handles, sizeof(handles), &numModules);
+    if (ret)
+    {
+        final_printf("sceKernelGetModuleList (0x%08x)\n", ret);
+        return ret;
+    }
+    final_printf("numModules: %li\n", numModules);
+    for (size_t i = 0; i < numModules; ++i)
+    {
+        struct OrbisKernelModuleInfo moduleInfo = {0};
+        moduleInfo.size = sizeof(moduleInfo);
+        ret = sceKernelGetModuleInfo(handles[i], &moduleInfo);
+        final_printf("ret 0x%x\n", ret);
+        final_printf("module %d\n", handles[i]);
+        final_printf("name: %s\n", moduleInfo.name);
+        final_printf("start: 0x%lx\n", (uint64_t)moduleInfo.segmentInfo[0].address);
+        final_printf("size: %u (0x%08x) bytes\n", moduleInfo.segmentInfo[0].size, moduleInfo.segmentInfo[0].size);
+        if (ret)
+        {
+            final_printf("sceKernelGetModuleInfo (%X)\n", ret);
+            return ret;
+        }
+        if (strstr(moduleInfo.name, name) || name[0] == '0')
+        {
+            if (module_out && handle_out)
+            {
+                memcpy(module_out, &moduleInfo, sizeof(*module_out));
+                *handle_out = handles[i];
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+static void sys_proc_rw(u64 Address, const void *Data, u64 Length)
+{
+    if (!Address || !Length)
+    {
+        final_printf("No target (0x%lx) or length (%li) provided!\n", Address, Length);
+        return;
+    }
+    struct proc_rw process_rw_data = {};
+    process_rw_data.address = Address;
+    process_rw_data.data = (void *)Data;
+    process_rw_data.length = Length;
+    process_rw_data.write_flags = 1;
+    sys_sdk_proc_rw(&process_rw_data);
+}
+
+static void jump64(uintptr_t source, uintptr_t target)
+{
+    static const uint8_t p[] = {0xFF, 0x25, 0x00, 0x00, 0x00, 0x00};
+    sys_proc_rw(source, p, sizeof(p));
+    sys_proc_rw(source + sizeof(p), &target, sizeof(target));
+}
+
+static void patch_libc()
+{
+    struct OrbisKernelModuleInfo info = {};
+    uint32_t handle = 0;
+    static const char init_env_sym[] = "_init_env";
+    static const char libc_mod[] = "libc.prx";
+    if (get_module_info(libc_mod, &info, &handle) == 1)
+    {
+        uintptr_t init = 0;
+        sceKernelDlsym(handle, init_env_sym, (void **)&init);
+        if (init)
+        {
+            jump64(init, (uintptr_t)load);
+        }
+    }
+    else
+    {
+        static const char padding[] = "========";
+        final_printf("%s %s symbol %s not found! %s\n", padding, libc_mod, init_env_sym, padding);
+    }
+}
+
+extern "C" int plugin_load(int* argc, const char** argv)
+{
+    final_printf("[GoldHEN] <%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);
+    final_printf("[GoldHEN] Plugin Author(s): %s\n", g_pluginAuth);
     // Better done in GoldHEN
     mkdir(PLUGIN_PATH, 0777);
 
@@ -328,97 +525,7 @@ static int load(int *argc, char **argv)
     {
         ini_table_destroy(config);
     }
-    return 0;
-}
 
-static s32 get_module_info(const char *name, OrbisKernelModuleInfo *module_out, uint32_t *handle_out)
-{
-    OrbisKernelModule handles[256] = {0};
-    size_t numModules = 0;
-    s32 ret = 0;
-    ret = sceKernelGetModuleList(handles, sizeof(handles), &numModules);
-    if (ret)
-    {
-        final_printf("sceKernelGetModuleList (0x%08x)\n", ret);
-        return ret;
-    }
-    final_printf("numModules: %li\n", numModules);
-    for (size_t i = 0; i < numModules; ++i)
-    {
-        struct OrbisKernelModuleInfo moduleInfo = {0};
-        moduleInfo.size = sizeof(moduleInfo);
-        ret = sceKernelGetModuleInfo(handles[i], &moduleInfo);
-        final_printf("ret 0x%x\n", ret);
-        final_printf("module %d\n", handles[i]);
-        final_printf("name: %s\n", moduleInfo.name);
-        final_printf("start: 0x%lx\n", (uint64_t)moduleInfo.segmentInfo[0].address);
-        final_printf("size: %u (0x%08x) bytes\n", moduleInfo.segmentInfo[0].size, moduleInfo.segmentInfo[0].size);
-        if (ret)
-        {
-            final_printf("sceKernelGetModuleInfo (%X)\n", ret);
-            return ret;
-        }
-        if (strstr(moduleInfo.name, name) || name[0] == '0')
-        {
-            if (module_out && handle_out)
-            {
-                memcpy(module_out, &moduleInfo, sizeof(*module_out));
-                *handle_out = handles[i];
-                return 1;
-            }
-        }
-    }
-    return 0;
-}
-
-static void sys_proc_rw(u64 Address, const void *Data, u64 Length)
-{
-    if (!Address || !Length)
-    {
-        final_printf("No target (0x%lx) or length (%li) provided!\n", Address, Length);
-        return;
-    }
-    struct proc_rw process_rw_data = {};
-    process_rw_data.address = Address;
-    process_rw_data.data = (void *)Data;
-    process_rw_data.length = Length;
-    process_rw_data.write_flags = 1;
-    sys_sdk_proc_rw(&process_rw_data);
-}
-
-static void jump64(uintptr_t source, uintptr_t target)
-{
-    static const uint8_t p[] = {0xFF, 0x25, 0x00, 0x00, 0x00, 0x00};
-    sys_proc_rw(source, p, sizeof(p));
-    sys_proc_rw(source + sizeof(p), &target, sizeof(target));
-}
-
-static void patch_libc()
-{
-    struct OrbisKernelModuleInfo info = {};
-    uint32_t handle = 0;
-    static const char init_env_sym[] = "_init_env";
-    static const char libc_mod[] = "libc.prx";
-    if (get_module_info(libc_mod, &info, &handle) == 1)
-    {
-        uintptr_t init = 0;
-        sceKernelDlsym(handle, init_env_sym, (void **)&init);
-        if (init)
-        {
-            jump64(init, (uintptr_t)load);
-        }
-    }
-    else
-    {
-        static const char padding[] = "========";
-        final_printf("%s %s symbol %s not found! %s\n", padding, libc_mod, init_env_sym, padding);
-    }
-}
-
-extern "C" int plugin_load(int* argc, const char** argv)
-{
-    final_printf("[GoldHEN] <%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);
-    final_printf("[GoldHEN] Plugin Author(s): %s\n", g_pluginAuth);
     boot_ver();
     patch_libc();
     return 0;
