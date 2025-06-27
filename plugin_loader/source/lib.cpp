@@ -133,7 +133,7 @@ static void load_plugins(ini_section_s *section, uint32_t *load_count, int argc,
             snprintf(notify_msg, sizeof(notify_msg), "Path:\n\"%s\"\nis wrong!\nPlugin will not load.", entry->key);
             if (!notifi_shown)
             {
-                NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
+                //NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
                 notifi_shown = true;
             }
             else
@@ -320,7 +320,7 @@ static int load(int *argc, char **argv)
                 g_PluginDetails[PluginLen] = '\0';
             }
             snprintf(notify_msg, sizeof(notify_msg), "Loaded %u plugin(s)\n%s", load_count, g_PluginDetails);
-            NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
+            //NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
         }
     }
 
@@ -419,7 +419,7 @@ extern "C" int plugin_load(int* argc, const char** argv)
 {
     final_printf("[GoldHEN] <%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);
     final_printf("[GoldHEN] Plugin Author(s): %s\n", g_pluginAuth);
-    boot_ver();
+    //boot_ver();
     patch_libc();
     return 0;
 }
