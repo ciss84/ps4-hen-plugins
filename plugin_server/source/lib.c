@@ -3,7 +3,7 @@
 #include "../../common/plugin_common.h"
 #include "../../common/notify.h"
 
-//#include "../../extern/libjbc/libjbc.h"
+#include "../../extern/libjbc/libjbc.h"
 
 #include <pthread.h>
 #include <unistd.h>
@@ -76,9 +76,9 @@ void* pthread_ftp(void* args)
 int plugin_load(int* argc, const char** argv)
 {
     pthread_t pthrd = 0;
-    pthread_t pthrd_ftp = 0;
+    //pthread_t pthrd_ftp = 0;
     pthread_create(&pthrd, 0, pthread_kserver, 0);
-    pthread_create(&pthrd_ftp, 0, pthread_ftp, 0);
+    //pthread_create(&pthrd_ftp, 0, pthread_ftp, 0);
     // block main thread from exiting _init_env
     while (1)
     {
