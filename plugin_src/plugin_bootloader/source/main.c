@@ -49,3 +49,10 @@ int32_t attr_module_hidden module_start(int32_t* argc, const char* argv[])
     }
     return 0;
 }
+
+int32_t attr_module_hidden module_stop(size_t argc, const void *args)
+{
+    final_printf("[GoldHEN] <%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);
+    final_printf("Plugin Manager ended successfully\n");
+    return 0;
+}
