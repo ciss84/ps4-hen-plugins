@@ -11,15 +11,14 @@ endif
 
 TYPE         := $(BUILD_TYPE)
 FINAL        := $(DEBUG_FLAGS)
-BUILD_FOLDER := $(shell pwd)/../bin/plugins
+BUILD_FOLDER := $(shell pwd)/../../bin/plugins
 OUTPUT_PRX   := $(shell basename $(CURDIR))
 TARGET       := $(BUILD_FOLDER)/prx$(TYPE)/$(OUTPUT_PRX)
 TARGET_ELF   := $(BUILD_FOLDER)/elf$(TYPE)/$(OUTPUT_PRX)
 TARGETSTUB   := $(OUTPUT_PRX).so
-COMMON_DIR    := ../common
 
 # Libraries linked into the ELF.
-LIBS := -lSceLibcInternal -lkernel -lc -lc++
+LIBS := -lSceLibcInternal -lGoldHEN_Hook -lkernel -lSceSysmodule
 
 EXTRAFLAGS := $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
 
@@ -29,6 +28,7 @@ TOOLCHAIN     := $(OO_PS4_TOOLCHAIN)
 PROJDIR       := ../$(shell basename $(CURDIR))/source
 INTDIR        := ../$(shell basename $(CURDIR))/build
 INCLUDEDIR    := ../$(shell basename $(CURDIR))/include
+COMMON_DIR    := ../../common
 
 # Define objects to build
 CFILES      := $(wildcard $(PROJDIR)/*.c)
@@ -38,9 +38,12 @@ OBJS        := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $
 STUBOBJS    := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $(PROJDIR)/%.cpp, $(INTDIR)/%.o.stub, $(CPPFILES)) $(patsubst $(COMMONDIR)/%.cpp, $(INTDIR)/%.o.stub, $(COMMONFILES))
 
 # Define final C/C++ flags
-CFLAGS      := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include
-CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/include/c++/v1
-LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib $(LIBS) $(TOOLCHAIN)/lib/crtlib.o
+CFLAGS      := $(FINAL) --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(INCLUDEDIR) -I$(COMMON_DIR) $(O_FLAG)
+CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/$(INCLUDEDIR)/c++/v1
+LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib $(LIBS) 
+
+# Create the intermediate directory incase it doesn't already exist.
+_unused     := $(shell mkdir -p $(INTDIR))
 
 # Check for linux vs macOS and account for clang/ld path
 UNAME_S     := $(shell uname -s)
@@ -58,16 +61,7 @@ ifeq ($(UNAME_S),Darwin)
         CDIR    := macos
 endif
 
-$(INTDIR):
-	mkdir -p $(INTDIR)
-
-$(BUILD_FOLDER)/prx$(TYPE):
-	mkdir -p $(BUILD_FOLDER)/prx$(TYPE)
-
-$(BUILD_FOLDER)/elf$(TYPE):
-	mkdir -p $(BUILD_FOLDER)/elf$(TYPE)
-
-$(TARGET): $(INTDIR) $(BUILD_FOLDER)/prx$(TYPE) $(BUILD_FOLDER)/elf$(TYPE) $(OBJS)
+$(TARGET): $(INTDIR) $(OBJS)
 	$(LD) $(INTDIR)/*.o -o $(TARGET_ELF).elf $(LDFLAGS)
 	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(TARGET_ELF).elf -out=$(TARGET_ELF).oelf --lib=$(TARGET).prx --paid 0x3800000000000011
 
