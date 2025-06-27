@@ -1,13 +1,18 @@
+// plugin-loader: Plugin loader for GoldHEN.
+// Authors:
+// Ctn123 @ https://github.com/Ctn123
+// illusion0001 @ https://github.com/illusion0001
+// Repository: https://github.com/GoldHEN/GoldHEN_Plugins_Repository
+
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdbool.h>
+#include <string.h>
+#include "GoldHEN.h"
 
 #include <orbis/libkernel.h>
 
-#include "../../common/plugin_common.h"
-#include "../../common/notify.h"
-#include "../../extern/GoldHEN/include/GoldHEN.h"
+#include "plugin_common.h"
 #include "config.h"
 
 #define PLUGIN_CONFIG_PATH GOLDHEN_PATH "/plugins.ini"
@@ -15,10 +20,10 @@
 #define PLUGIN_DEFAULT_SECTION "default"
 #define PLUGIN_SETTINGS_SECTION "settings"
 
-attr_public const char* g_pluginName = "plugin_loader";
-attr_public const char* g_pluginDesc = "Plugin loader.";
-attr_public const char* g_pluginAuth = "illusiony";
-attr_public uint32_t g_pluginVersion = 0x00000100;  // 1.00
+attr_public const char *g_pluginName = "plugin_loader";
+attr_public const char *g_pluginDesc = "Plugin loader for GoldHEN";
+attr_public const char *g_pluginAuth = "Ctn123, illusion";
+attr_public u32 g_pluginVersion = 0x00000200; // 2.00
 
 static char g_PluginDetails[256] = {0};
 
@@ -134,7 +139,7 @@ static void load_plugins(ini_section_s *section, uint32_t *load_count, int argc,
             snprintf(notify_msg, sizeof(notify_msg), "Path:\n\"%s\"\nis wrong!\nPlugin will not load.", entry->key);
             if (!notifi_shown)
             {
-                //NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
+                NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
                 notifi_shown = true;
             }
             else
@@ -321,7 +326,7 @@ static int load(int *argc, char **argv)
                 g_PluginDetails[PluginLen] = '\0';
             }
             snprintf(notify_msg, sizeof(notify_msg), "Loaded %u plugin(s)\n%s", load_count, g_PluginDetails);
-            //NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
+            NotifyStatic(TEX_ICON_SYSTEM, notify_msg);
         }
     }
 
@@ -416,11 +421,18 @@ static void patch_libc()
     }
 }
 
-extern "C" int plugin_load(int* argc, const char** argv)
+int32_t attr_module_hidden module_start(size_t argc, const void *args)
 {
     final_printf("[GoldHEN] <%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);
     final_printf("[GoldHEN] Plugin Author(s): %s\n", g_pluginAuth);
     boot_ver();
     patch_libc();
+    return 0;
+}
+
+int32_t attr_module_hidden module_stop(size_t argc, const void *args)
+{
+    final_printf("[GoldHEN] <%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);
+    final_printf("Plugin Manager ended successfully\n");
     return 0;
 }

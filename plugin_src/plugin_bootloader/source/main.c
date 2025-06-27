@@ -10,7 +10,7 @@ attr_public const char* g_pluginDesc = "Bootloader plugin.";
 attr_public const char* g_pluginAuth = "illusiony";
 attr_public uint32_t g_pluginVersion = 0x00000100;  // 1.00
 
-int32_t attr_public plugin_load(int32_t* argc, const char* argv[])
+int32_t attr_module_hidden module_start(int32_t* argc, const char* argv[])
 {
     final_printf("%s Plugin Started.\n", g_pluginName);
     final_printf("<%s\\Ver.0x%08x> %s\n", g_pluginName, g_pluginVersion, __func__);

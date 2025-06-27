@@ -1,3 +1,0 @@
-[submodule "extern/libjbc"]
-	path = extern/libjbc
-	url = https://github.com/bucanero/ps4-libjbc.git
