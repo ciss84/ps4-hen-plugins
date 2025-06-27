@@ -157,7 +157,6 @@ jobs:
 
     - name: Create Release
       if: github.event_name != 'pull_request'
-      working-directory: bin
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
