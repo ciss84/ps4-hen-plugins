@@ -191,7 +191,7 @@ ftp_greet(ftp_env_t* env)
     char msg[0x100];
     size_t len;
 
-    snprintf(msg, sizeof(msg), "220-Welcome to ftpsrv.elf running on pid %d, compiled at %s %s\r\n", getpid(), __DATE__, __TIME__);
+    snprintf(msg, sizeof(msg), "220-Welcome to ftpsrv.elf running on pid %d, compiled at %s %s\r\n", getpid());
     strncat(msg, "220 Service is ready\r\n", sizeof(msg) - 1);
 
     len = strlen(msg);
@@ -324,12 +324,9 @@ ftp_serve(uint16_t port, int notify_user)
         snprintf(msg, sizeof(msg),
                  "Serving FTP\n"
                  "on %s:%d (%s)\n"
-                 "Compiled on %s %s\n",
                  ip,
                  port,
-                 ifa->ifa_name,
-                 __DATE__,
-                 __TIME__);
+                 ifa->ifa_name);
         if (notify_user)
         {
             Notify(TEX_ICON_SYSTEM, msg);
@@ -398,7 +395,7 @@ int ftp_main(void)
     int notify_user = 1;
     pid_t pid;
 
-    printf("FTP server was compiled at %s %s\n", __DATE__, __TIME__);
+    printf("FTP server was compiled at %s %s\n");
 
 #if 0
     // change authid so certain character devices can be read, e.g.,

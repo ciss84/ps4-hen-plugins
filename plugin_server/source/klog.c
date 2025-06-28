@@ -248,7 +248,7 @@ void* pthread_kserver(void* args)
     (void)args;
     uint16_t port = 3232;
     int notify_user = 1;
-    printf("Socket server was compiled at %s %s\n", __DATE__, __TIME__);
+    printf("Socket server was compiled at %s %s\n");
     while (1)
     {
         serve_file("/dev/klog", port, notify_user);
