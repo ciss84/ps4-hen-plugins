@@ -323,7 +323,7 @@ ftp_serve(uint16_t port, int notify_user)
         char msg[256] = {};
         snprintf(msg, sizeof(msg),
                  "Serving FTP\n"
-                 "on %s:%d (%s)\n"
+                 "on %s:%d (%s)\n",
                  ip,
                  port,
                  ifa->ifa_name);
