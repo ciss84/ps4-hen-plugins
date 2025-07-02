@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+#include <sstream>
 #include "../../common/entry.h"
 
 #include "../../common/plugin_common.h"
