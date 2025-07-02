@@ -15,7 +15,7 @@ extern "C" int plugin_load(SceEntry* args, const void* atexit_handler)
     // Just a copy of example for nowAdd commentMore actions
     std::ostringstream os;
     os << "Hi I'm from the library!\n"
-       << "You passed: " << *argc << " args\n"
+       << "You passed: " << *args << " args\n"
        << "Built: " << __TIME__ << " " << __DATE__;
     printf("%s\n", os.str().c_str());
     return 0;
