@@ -1,7 +1,6 @@
 #include "../../common/entry.h"
 
 #include "../../common/plugin_common.h"
-#include "../../common/notify.h"
 #include <stdint.h>
 
 attr_public const char* g_pluginName = "plugin_loader";
