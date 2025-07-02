@@ -156,7 +156,7 @@ attr_public int plugin_load(struct SceEntry* args)
     const int r = sceKernelGetModuleInfo(0, &info);
     if (r == 0)
     {
-        UploadEventProxyCall(&info);
+        //UploadEventProxyCall(&info);
         int app_exe = sceKernelLoadStartModule("/app0/psm/Application/app.exe.sprx", 0, 0, 0, 0, 0);
         printf("app_exe 0x%x\n", app_exe);
         if (app_exe > 0)
@@ -166,7 +166,7 @@ attr_public int plugin_load(struct SceEntry* args)
             const int r = sceKernelGetModuleInfo(app_exe, &info_app);
             if (r == 0)
             {
-                UploadRegStrCall(&info, &info_app);
+                //UploadRegStrCall(&info, &info_app);
                 UploadRemotePlayPatch(&info_app);
                 UploadShellUICheck();
                 UploadBgftFixup(&info);
