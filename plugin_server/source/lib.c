@@ -1,3 +1,5 @@
+#include "../../common/entry.h"
+
 #include <stdint.h>
 #include <stdio.h>
 #include "../../common/plugin_common.h"
@@ -16,8 +18,6 @@ attr_public uint32_t g_pluginVersion = 0x00000100;  // 1.00
 void* pthread_kserver(void* args);
 
 int ftp_main(void);
-
-int temp_main(void);
 
 // Verify jailbreak
 static int is_jailbroken(void)
@@ -73,7 +73,7 @@ void* pthread_ftp(void* args)
     return 0;
 }
 
-int plugin_load(int* argc, const char** argv)
+int plugin_load(struct SceEntry* args)
 {
     pthread_t pthrd = 0;
     pthread_t pthrd_ftp = 0;
