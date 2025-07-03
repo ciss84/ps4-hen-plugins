@@ -16,11 +16,17 @@
 attr_public const char* g_pluginName = "plugin_example";
 attr_public const char* g_pluginDesc = "Demonstrate usage of CXX in module. Based from OpenOrbis `library_example`";
 attr_public const char* g_pluginAuth = "illusiony";
-attr_public uint32_t g_pluginVersion = 0x00000100;  // 1.00
+attr_public const char* g_pluginVersion = "Git Commit: " GIT_COMMIT
+                                          "\n"
+                                          "Git Branch: " GIT_VER
+                                          "\n"
+                                          "Git Commit Number: " GIT_NUM_STR
+                                          "\n"
+                                          "Built: " BUILD_DATE;
 
 static void* app_exe = 0;
 
-int plugin_load(struct SceEntry* args)
+attr_public int plugin_load(struct SceEntry* args)
 {
 
     Notify("", "Notify 0x%lx\n", (uintptr_t)sceKernelSendNotificationRequest);

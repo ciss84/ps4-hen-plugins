@@ -2,7 +2,6 @@
 
 DEBUG_FLAGS = -DLOG_PRINTF_TO_TTY=0
 LOG_TYPE = -D__USE_PRINTF__
-BUILD_TYPE = _final
 
 ifeq ($(DEBUG),1)
     DEBUG_FLAGS = -DLOG_PRINTF_TO_TTY=1
@@ -18,9 +17,9 @@ TARGETSTUB   := $(OUTPUT_PRX).so
 COMMON_DIR    := ../common
 
 # Libraries linked into the ELF.
-LIBS := -lSceLibcInternal -lkernel -lc # link with libc for errno
+LIBS := -ljbc -lSceLibcInternal -lkernel -lc # link with libc for errno
 
-EXTRAFLAGS := $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
+EXTRAFLAGS := -fvisibility=hidden $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
 
 # You likely won't need to touch anything below this point.
 # Root vars
@@ -68,7 +67,7 @@ $(BUILD_FOLDER)/elf$(TYPE):
 $(INTDIR)/%/:
 	mkdir -p $(@D)
 
-$(TARGET): $(INTDIR) $(BUILD_FOLDER)/prx$(TYPE) $(BUILD_FOLDER)/elf$(TYPE) $(OBJS)
+$(TARGET): libjbc $(INTDIR) $(BUILD_FOLDER)/prx$(TYPE) $(BUILD_FOLDER)/elf$(TYPE) $(OBJS)
 	$(LD) $(shell find $(INTDIR) -name '*.o') -o $(TARGET_ELF).elf $(LDFLAGS)
 	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(TARGET_ELF).elf -out=$(TARGET_ELF).oelf --lib=$(TARGET).prx --paid 0x3800000000000011
 
@@ -83,10 +82,17 @@ $(INTDIR)/%.o: $(PROJDIR)/%.cpp
 	@mkdir -p $(dir $@)
 	$(CCX) $(CXXFLAGS) -o $@ $<
 
+send: $(TARGET)
+	curl -T $(TARGET).prx ftp://$(PS4_HOST):2121/data/hen/$(OUTPUT_PRX).prx
+
+libjbc:
+	make -C ../extern/libjbc install
+
 build-info:
 	$(shell echo "#define GIT_COMMIT \"$(shell git rev-parse HEAD)\"" > $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_VER \"$(shell git branch --show-current)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_NUM $(shell git rev-list HEAD --count)" >> $(COMMON_DIR)/git_ver.h)
+	$(shell echo "#define GIT_NUM_STR \"$(shell git rev-list HEAD --count)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define BUILD_DATE \"$(shell date '+%b %d %Y @ %T')\"" >> $(COMMON_DIR)/git_ver.h)
 
 .PHONY: clean

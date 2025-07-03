@@ -5,11 +5,18 @@
 #include "entry.h"
 #include "plugin_common.h"
 #include "notify.h"
+#include "path.h"
 
 attr_public const char* g_pluginName = "bootloader";
 attr_public const char* g_pluginDesc = "Bootloader plugin.";
 attr_public const char* g_pluginAuth = "illusiony";
-attr_public uint32_t g_pluginVersion = 0x00000100;  // 1.00
+attr_public const char* g_pluginVersion = "Git Commit: " GIT_COMMIT
+                                          "\n"
+                                          "Git Branch: " GIT_VER
+                                          "\n"
+                                          "Git Commit Number: " GIT_NUM_STR
+                                          "\n"
+                                          "Built: " BUILD_DATE;
 
 int32_t attr_public plugin_load(struct SceEntry* args, const void* atexit_handler)
 {
@@ -18,16 +25,24 @@ int32_t attr_public plugin_load(struct SceEntry* args, const void* atexit_handle
     final_printf("Plugin Author(s): %s\n", g_pluginAuth);
     // `sceKernelLoadStartModule` will do all the crt startup work
     // but module_start doesn't do anything there so resolve the `plugin_load` symbol and start it
-    static const char loader_path[] = "/data/plugin_loader.prx";
+    static const char loader_path[] = PRX_LOADER_PATH;
     const int m = sceKernelLoadStartModule(loader_path, 0, 0, 0, 0, 0);
     if (m > 0)
     {
         int32_t (*load)(struct SceEntry*) = NULL;
         static const char loader_sym[] = "plugin_load";
         sceKernelDlsym(m, loader_sym, (void**)&load);
+        int32_t (*unload)(struct SceEntry*) = NULL;
+        static const char unload_sym[] = "plugin_unload";
+        sceKernelDlsym(m, unload_sym, (void**)&unload);
         if (load)
         {
-            load(args);
+            if (load(args) && unload)
+            {
+                unload(args);
+                const int unload = sceKernelStopUnloadModule(m, 0, 0, 0, 0, 0);
+                final_printf("Unload result 0x%08x\n", unload);
+            }
         }
         else
         {

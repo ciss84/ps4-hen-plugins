@@ -442,11 +442,11 @@ uintptr_t pid_chunk_scan(const int pid, const uintptr_t mem_start, const uintptr
 #define chunk_size (8ul * 1024)
     uintptr_t found = 0;
     uint8_t mem[chunk_size];
-    for (size_t i = 0; i < (mem_start - chunk_size); i += chunk_size)
+    for (size_t i = 0; i < (mem_sz - chunk_size); i += chunk_size)
     {
-        if (i % (chunk_size * 8))
+        if (0 && i % (chunk_size * 8))
         {
-            debug_printf("scanning pid %d (%lu/%lu) mem 0x%p\n", pid, i, mem_start, mem);
+            debug_printf("scanning pid %d (%lu/%lu) mem 0x%p\n", pid, i, mem_sz, mem);
         }
         const uintptr_t chunk_start = mem_start + i;
         sys_proc_rw(pid, chunk_start, (const void*)mem, chunk_size, 0);
@@ -478,29 +478,35 @@ uintptr_t pid_chunk_scan(const int pid, const uintptr_t mem_start, const uintptr
 
 uintptr_t* findSymbolPtrInEboot(const char* module, const char* symbol_name)
 {
+    here();
     uintptr_t symbol = 0;
     if (!symbol_name)
     {
         return 0;
     }
     {
+    here();
         const int handle = sceKernelLoadStartModule(module, 0, 0, 0, 0, 0);
         printf("%s load 0x%08x\n", module, handle);
         if (handle > 0)
         {
+    here();
             sceKernelDlsym(handle, symbol_name, (void**)&symbol);
-            printf("symbol %s resolved to %lx (real %lx)\n", symbol_name, symbol, *(uintptr_t*)0x00f3a9e8);
+            //printf("symbol %s resolved to %lx (real %lx)\n", symbol_name, symbol, *(uintptr_t*)0x00f3a9e8);
         }
+    here();
     }
     if (!symbol)
     {
         return 0;
     }
+    here();
     struct OrbisKernelModuleInfo info = {0};
     info.size = sizeof(info);
     const int r = sceKernelGetModuleInfo(0, &info);
     printf("sceKernelGetModuleInfoEx 0x%08x\n", r);
     uintptr_t* p = 0;
+    here();
     if (r == 0)
     {
         const uint32_t mm = 0;
@@ -520,6 +526,7 @@ uintptr_t* findSymbolPtrInEboot(const char* module, const char* symbol_name)
             printf("found %s at 0x%p -> 0x%lx\n", symbol_name, p, symbol);
         }
     }
+    here();
     return p;
 }
 
@@ -605,17 +612,25 @@ static size_t GetInstructionSize(uint64_t Address, size_t MinSize)
 // Allocation-less version of a Prologue hook
 // I use pre-allocated `returnPad`, copy instructions to it and write instructions to it
 static size_t caveInstSize = 0;
-static void CaveBlockInit(uint8_t* cavePad, const size_t cavePadSize)
+static void CaveBlockInit(void)
 {
     static bool once = false;
     if (!once)
     {
-        memset(cavePad, 0xcc, cavePadSize);
-        sceKernelMprotect(cavePad, sizeof(cavePad), 7);
+        const int pid = getpid();
+        //sceKernelMprotect(cavePad, cavePadSize, 7);
+        static const uint8_t m[] = {0xB8, 0x01, 0x00, 0x00, 0x00, 0xC3};
+        sys_proc_rw(pid, (uintptr_t)cavePadFunc, m, sizeof(m), 1);
+        int (*test)(void);
+        test = (void*)cavePadFunc;
+        //memcpy(cavePad, m, sizeof(m));
+        final_printf("checking executable code, it returned %d\n", test());
+        sys_proc_memset(pid, (uintptr_t)cavePadFunc, 0xcc, MAX_CAVE_SIZE);
+        //memset(cavePad, 0xcc, cavePadSize);
         // DWORD temp = caveInstSize = 0;
         // VirtualProtect(cavePad, cavePadSize, PAGE_EXECUTE_WRITECOPY, &temp);
         once = true;
-        printf("cavePad setup at 0x%p! Size %ld\n", cavePad, cavePadSize);
+        printf("cavePad setup at 0x%p! Size %ld\n", (void*)cavePadFunc, MAX_CAVE_SIZE);
     }
 }
 static bool validnateBlockSize(const size_t cavePadSize, const size_t newSize)
@@ -627,20 +642,20 @@ static bool validnateBlockSize(const size_t cavePadSize, const size_t newSize)
     }
     return 1;
 }
-uintptr_t CreatePrologueHook(uint8_t* cavePad, const size_t cavePadSize, const uintptr_t address, const int min_instruction_size)
+uintptr_t CreatePrologueHook(const uintptr_t address, const int min_instruction_size)
 {
-    CaveBlockInit(cavePad, cavePadSize);
+    CaveBlockInit();
     if (!address || min_instruction_size < 5)
     {
         return 0;
     }
     const size_t int_size = GetInstructionSize(address, min_instruction_size);
-    if (!int_size || !validnateBlockSize(cavePadSize, caveInstSize + int_size + sizeof(JMPstub)))
+    if (!int_size || !validnateBlockSize(MAX_CAVE_SIZE, caveInstSize + int_size + sizeof(JMPstub)))
     {
         return 0;
     }
     const size_t addroffset = sizeof(JMPstub);
-    const uintptr_t ucavePad = (uintptr_t)cavePad;
+    const uintptr_t ucavePad = (uintptr_t)cavePadFunc;
     const uintptr_t ucavePadNew = ucavePad + caveInstSize;
     const uintptr_t retaddr = address + int_size;
     const int pid = getpid();
@@ -650,6 +665,7 @@ uintptr_t CreatePrologueHook(uint8_t* cavePad, const size_t cavePadSize, const u
     const uintptr_t caveAddr = ucavePad + caveInstSize;
     caveInstSize += int_size + (sizeof(JMPstub) + sizeof(uintptr_t));
     printf("New caveInstSize: %ld\n", caveInstSize);
+    hex_dump(caveAddr, caveInstSize, caveAddr);
     return caveAddr;
 }
 

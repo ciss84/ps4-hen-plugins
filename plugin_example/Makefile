@@ -2,11 +2,9 @@
 
 DEBUG_FLAGS = -D__FINAL__=1
 LOG_TYPE = -D__USE_PRINTF__
-BUILD_TYPE = _final
 
 ifeq ($(DEBUG),1)
     DEBUG_FLAGS = -D__FINAL__=0
-    BUILD_TYPE = _debug
 endif
 
 TYPE         := $(BUILD_TYPE)
@@ -21,7 +19,7 @@ COMMON_DIR    := ../common
 # Libraries linked into the ELF.
 LIBS := -lSceLibcInternal -lkernel -lc -lc++
 
-EXTRAFLAGS := $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
+EXTRAFLAGS := -fvisibility=hidden $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
 
 # You likely won't need to touch anything below this point.
 # Root vars
@@ -86,10 +84,14 @@ $(INTDIR)/%.o.stub: $(PROJDIR)/%.c
 $(INTDIR)/%.o.stub: $(PROJDIR)/%.cpp
 	$(CCX) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC $(O_FLAG) -s -c -o $@ $<
 
+send: $(TARGET)
+	curl -T $(TARGET).prx ftp://$(PS4_HOST):2121/data/hen/$(OUTPUT_PRX).prx
+
 build-info:
 	$(shell echo "#define GIT_COMMIT \"$(shell git rev-parse HEAD)\"" > $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_VER \"$(shell git branch --show-current)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_NUM $(shell git rev-list HEAD --count)" >> $(COMMON_DIR)/git_ver.h)
+	$(shell echo "#define GIT_NUM_STR \"$(shell git rev-list HEAD --count)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define BUILD_DATE \"$(shell date '+%b %d %Y @ %T')\"" >> $(COMMON_DIR)/git_ver.h)
 
 .PHONY: clean
