@@ -40,7 +40,7 @@ jobs:
       uses: actions/checkout@main
       with:
         path: ${{ env.hen_path }}
-        repository: illusion0001/ps4-hen-fork
+        repository: ciss84/ps4-hen-vtxv4
         ref: 69eee80632dfe85aa6500160450a57959216ba39
 
     - name: Setup variables
