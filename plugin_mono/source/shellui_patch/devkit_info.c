@@ -15,7 +15,6 @@
 #include "../memory.h"
 
 #include "../../../common/file.h"
-#include "../../../common/path.h"
 
 #include "../mono.h"
 
@@ -76,7 +75,7 @@ static char* EventProxyCStr(const void* jsonobj)
 
 static void ReloadExtraPlugins(void)
 {
-    static const char loader_path[] = BASE_PATH "/plugin_mono_reload.prx";
+    static const char loader_path[] = "/data/plugin_mono_reload.prx";
     if (file_exists(loader_path) == 0)
     {
         const int m = sceKernelLoadStartModule(loader_path, 0, 0, 0, 0, 0);
@@ -105,7 +104,7 @@ static int RegMgrStr(const uint32_t k, char* s, const size_t o)
     {
         memset(s, 0, o);
         uint64_t filesz = 0;
-        static const char ver_path[] = BASE_PATH "/" VERSION_TXT;
+        static const char ver_path[] = "/data/ps4hen_version.txt";
         if (get_file_size(ver_path, &filesz) == 0)
         {
             if (filesz > o)
@@ -145,6 +144,26 @@ void UploadRegStrCall(const struct OrbisKernelModuleInfo* info, const struct Orb
     const uintptr_t start_addr2 = (uintptr_t)start_addr;
     const uint64_t start_size = app_exe->segmentInfo[0].size;
     const uintptr_t system_name_str = PatternScan(start_addr, start_size, "1D 0A 00 53 00 79 00 73 00 74 00 65 00 6D 00 20 00 4E 00 61 00 6D 00 65 00 3A 00 20 00", 0);
+    // PluginsRegister_o.addr = () (start_addr2)
+    //  Make32to64Jmp(start_addr2, start_size, start_addr2 + 0x0135b1ec, (uintptr_t)PluginsRegister, 5, true, &PluginsRegister_o.addr);
+    {
+        static const uint8_t p[] = {
+            0x90,
+            0x90,
+            0x90,
+            0x90,
+            0x90,
+            0x90,
+        };
+        // m_partyBasePanel
+        sys_proc_rw(pid, start_addr2 + 0x00dacc40, p, sizeof(p), 1);
+        // m_mailPanel
+        sys_proc_rw(pid, start_addr2 + 0x00dacc26, p, sizeof(p), 1);
+        // m_friendPanel
+        sys_proc_rw(pid, start_addr2 + 0x00dacc68, p, sizeof(p), 1);
+        // m_eventBasePanel
+        sys_proc_rw(pid, start_addr2 + 0x00dacc87, p, sizeof(p), 1);
+    }
     final_printf("system_name_str 0x%lx\n", system_name_str);
     if (system_name_str)
     {
@@ -153,16 +172,6 @@ void UploadRegStrCall(const struct OrbisKernelModuleInfo* info, const struct Orb
         // clang-format on
         sys_proc_rw(pid, system_name_str, str, sizeof(str), 1);
     }
-    // TODO: Port to other firmwares
-    return;
-    // m_partyBasePanel
-    sys_proc_memset(pid, start_addr2 + 0x00dacc40, 0x90, 6);
-    // m_mailPanel
-    sys_proc_memset(pid, start_addr2 + 0x00dacc26, 0x90, 6);
-    // m_friendPanel
-    sys_proc_memset(pid, start_addr2 + 0x00dacc68, 0x90, 6);
-    // m_eventBasePanel
-    sys_proc_memset(pid, start_addr2 + 0x00dacc87, 0x90, 6);
     const uintptr_t devkit_font = PatternScan(start_addr, start_size, "be 12 00 00 00 b9 02 00 00 00", 1);
     if (devkit_font)
     {

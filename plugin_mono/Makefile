@@ -2,9 +2,11 @@
 
 DEBUG_FLAGS = -D__FINAL__=1
 LOG_TYPE = -D__USE_PRINTF__
+BUILD_TYPE = _final
 
 ifeq ($(DEBUG),1)
     DEBUG_FLAGS = -D__FINAL__=0
+    BUILD_TYPE = _debug
 endif
 
 TYPE         := $(BUILD_TYPE)
@@ -19,7 +21,7 @@ COMMON_DIR    := ../common
 # Libraries linked into the ELF.
 LIBS := -lSceLibcInternal -lkernel -lScePsm -lmonosgen -lSceRegMgr
 
-EXTRAFLAGS := -fvisibility=hidden -fshort-wchar $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall -Wno-unused-function -Wno-unused-const-variable
+EXTRAFLAGS := -fshort-wchar $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall -Wno-unused-function -Wno-unused-const-variable
 
 # You likely won't need to touch anything below this point.
 # Root vars
@@ -92,14 +94,13 @@ build-info:
 	$(shell echo "#define GIT_COMMIT \"$(shell git rev-parse HEAD)\"" > $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_VER \"$(shell git branch --show-current)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_NUM $(shell git rev-list HEAD --count)" >> $(COMMON_DIR)/git_ver.h)
-	$(shell echo "#define GIT_NUM_STR \"$(shell git rev-list HEAD --count)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define BUILD_DATE \"$(shell date '+%b %d %Y @ %T')\"" >> $(COMMON_DIR)/git_ver.h)
 
 mono:
 	make -C mono_bin clean send
 
 send: $(TARGET)
-	curl -T $(TARGET).prx ftp://$(PS4_HOST):2121/data/hen/$(OUTPUT_PRX).prx
+	curl -T $(TARGET).prx ftp://$(PS4_HOST):2121/data/$(OUTPUT_PRX).prx
 
 .PHONY: clean
 .DEFAULT_GOAL := all
