@@ -9,6 +9,7 @@
       <toggle_switch id="disable_aslr" title="Disable userland ASLR" description="Disable userland ASLR (Address Space Layout Randomization).&#xa;Disabling it can improve compatibility with homebrew applications, debuggers, and cheats." value="0"/>
       <toggle_switch id="enable_browser" title="Enabled browser" description="" value="0"/>
       <toggle_switch id="kernel_clock" title="Enabled Kernel clock" description="" value="0"/>
+      <toggle_switch id="fan" title="Enabled Fan" description="" value="0"/>
       <toggle_switch id="nobd_patches" title="Enable NoBD patches" description="NoBD (No Blu-ray Drive) patches - allows system updates without a working Blu-ray drive." value="0"/>
     <list id="target_id" title="Target ID spoofer" description="Changes the console's reported Target ID for development or region-specific functionality.">
       <list_item id="target_id_0x00" title="None" value="0"/>
