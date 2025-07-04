@@ -41,7 +41,7 @@ jobs:
       with:
         path: ${{ env.hen_path }}
         repository: ciss84/ps4-hen-vtxv4
-        ref: 26d166b0083b724e859abe8c69a697859a4186ef
+        ref: dc9c1be2a134ba70b713e2ebebb31e4ee9f0b888
 
     - name: Setup variables
       run: |
