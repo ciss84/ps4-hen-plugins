@@ -1,24 +1,5 @@
 #pragma once
 
-struct NotifyBuffer
-{ //Naming may be incorrect.
-	NotifyType Type;		//0x00 
-	int ReqId;				//0x04
-	int Priority;			//0x08
-	int MsgId;				//0x0C
-	int TargetId;			//0x10
-	int UserId;				//0x14
-	int unk1;				//0x18
-	int unk2;				//0x1C
-	int AppId;				//0x20
-	int ErrorNum;			//0x24
-	int unk3;				//0x28
-	char UseIconImageUri; 	//0x2C
-	char Message[1024]; 	//0x2D
-	char Uri[1024]; 		//0x42D
-	char unkstr[1024];		//0x82D
-}; //Size = 0xC30
-
 #define ARRAY_COUNT(arry) sizeof(arry) / sizeof(arry[0])
 
 typedef unsigned char vm_prot_t;	/* protection codes */
