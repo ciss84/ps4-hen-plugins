@@ -72,6 +72,7 @@ jobs:
         make -C plugin_example
         make -C plugin_mono DEBUG=1
         make -C plugin_server
+        make -C plugin_Toolbox
 
     - name: Zip
       working-directory: ${{ env.zip_glob_path }}
