@@ -41,6 +41,7 @@ along with this program; see the file COPYING. If not, see
 #define DISK_CHECK DISK_PATH "/k"
 #define DISK_CHECK_STOP DISK_PATH "/sk"
 #define DISK_KLOG "/user/data/klog"
+#define DEVICE_KLOG "/dev/klog"
 
 static int serve_file_while_connected(const char* path, int server_fd)
 {
@@ -319,10 +320,10 @@ static void* klog_to_disk_thread(void* args)
 
         if (klog_fd < 0)
         {
-            klog_fd = open("/dev/klog", O_RDONLY | O_NONBLOCK);
+            klog_fd = open(DEVICE_KLOG, O_RDONLY | O_NONBLOCK);
             if (klog_fd < 0)
             {
-                perror("open /dev/klog");
+                perror("open " DEVICE_KLOG);
                 sleep(1);
                 continue;
             }
@@ -347,7 +348,7 @@ static void* klog_to_disk_thread(void* args)
             }
             else
             {
-                perror("read /dev/klog");
+                perror("read " DEVICE_KLOG);
                 close(klog_fd);
                 klog_fd = -1;
                 sleep(1);
@@ -378,17 +379,23 @@ void* pthread_kserver(void* args)
 
     printf("Socket server was compiled at %s %s\n", __DATE__, __TIME__);
 
-    if (1 && pthread_create(&dt, NULL, klog_to_disk_thread, NULL) != 0)
+    const int log_to_disk = 0;
+    if (log_to_disk && pthread_create(&dt, NULL, klog_to_disk_thread, NULL) != 0)
     {
-        perror("pthread_create disk logger");
+        perror("pthread_create klog_to_disk_thread");
+        pthread_exit(0);
         return NULL;
     }
 
     while (1)
     {
-        serve_file("/dev/klog", port, notify_user);
-        notify_user = 0;
+        if (!log_to_disk)
+        {
+            serve_file(DEVICE_KLOG, port, notify_user);
+            notify_user = 0;
+        }
         sleep(3);
     }
+    pthread_exit(0);
     return 0;
 }
