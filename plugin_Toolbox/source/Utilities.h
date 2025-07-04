@@ -1,13 +1,5 @@
 #pragma once
 
-enum NotifyType
-{
-	UNK_1 = 100,
-	TrcCheckNotificationRequest = 101,
-	NpDebugNotificationRequest = 102,
-	UNK_2 = 102,
-};
-
 struct NotifyBuffer
 { //Naming may be incorrect.
 	NotifyType Type;		//0x00 
