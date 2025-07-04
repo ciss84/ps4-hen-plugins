@@ -57,7 +57,8 @@ ifeq ($(UNAME_S),Darwin)
 endif
 
 bundle_data:
-	xxd -i data/hen_settings.xml | sed 's/^unsigned /static const unsigned /' > source/hen_settings.inc.c
+	xxd -i data/settings_root.xml | sed 's/^unsigned /static const unsigned /' > source/settings_root.inc.c
+	xxd -i data/orbis_toolbox.xml | sed 's/^unsigned /static const unsigned /' > source/orbis_toolbox.inc.c
 
 $(INTDIR):
 	mkdir -p $(INTDIR)
