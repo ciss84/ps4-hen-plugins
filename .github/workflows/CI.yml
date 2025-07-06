@@ -40,7 +40,7 @@ jobs:
       uses: actions/checkout@main
       with:
         path: ${{ env.hen_path }}
-        repository: Scene-Collective/ps4-hen
+        repository: ciss84/ps4-hen-vtxv4
 
     - name: Setup variables
       run: |
