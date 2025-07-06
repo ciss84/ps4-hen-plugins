@@ -14,7 +14,6 @@
 #include <stddef.h>
 
 #include "../ini.h"
-#include "../hen_settings.inc.c"
 
 typedef enum
 {
@@ -169,10 +168,6 @@ static void* ReadResourceStream(void* inst, MonoString* filestring)
                 mscorlib_ptr = mono_get_image(mscorlib_sprx);
             }
         }
-        if (!mscorlib_ptr)
-        {
-            return ReadResourceStream_Original.ptr(inst, filestring);
-        }
         const uint64_t s = wSID(filestring->str);
         printf("SID: 0x%lx\n", s);
         switch (s)
@@ -198,7 +193,7 @@ static void* ReadResourceStream(void* inst, MonoString* filestring)
             // case SID("Sce.Vsh.ShellUI.src.Sce.Vsh.ShellUI.Settings.Plugins.hen_settings.xml"):
             case 0xE6168C18F98D1DF6:
             {
-                return file_exists(SHELLUI_HEN_SETTINGS) == 0 ? Mono_File_Stream(mscorlib_ptr, SHELLUI_HEN_SETTINGS) : Mono_New_Stream(mscorlib_ptr, data_hen_settings_xml, data_hen_settings_xml_len);
+                return Mono_File_Stream(mscorlib_ptr, SHELLUI_HEN_SETTINGS);
             }
             // case SID("Sce.Vsh.ShellUI.src.Sce.Vsh.ShellUI.Settings.Plugins.external_hdd.xml"):
             case 0x959FE82777191437:
@@ -333,6 +328,21 @@ static void NewOnPress(const void* p1, const void* element, const void* p3)
     if (IsValidElementType(Type))
     {
         ReadWriteLocalSettings(Type, Id, Value, false, 0, 0);
+    }
+    if (SID(Id) == SID("id_show_sysiteminit"))
+    {
+        const uintptr_t p = (uintptr_t)Mono_Get_Address_of_Method(App_Exe, "Sce.Vsh.ShellUI.TopMenu", "SystemAreaPanel", "SysItemInit", 0);
+        const int app_exe_h = sceKernelLoadStartModule("/app0/psm/Application/app.exe.sprx", 0, 0, 0, 0, 0);
+        if (app_exe_h > 0)
+        {
+            struct OrbisKernelModuleInfo info = {0};
+            info.size = sizeof(info);
+            const int r = sceKernelGetModuleInfo(app_exe_h, &info);
+            if (r == 0)
+            {
+                Notify("", "SysItemInit 0x%lx 0x%lx\n", p, p - (uintptr_t)info.segmentInfo[0].address);
+            }
+        }
     }
     // id_restart_shellui
     OnPress_Original.ptr(p1, element, p3);

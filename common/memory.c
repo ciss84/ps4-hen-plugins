@@ -297,6 +297,20 @@ uint64_t* u64_Scan(const void* module, const uint64_t sizeOfImage, const uint64_
     return 0;
 }
 
+void* Mem_Scan(const void* module, const uint64_t sizeOfImage, const void* value, const size_t value_sz)
+{
+    uint8_t* scanBytes = (uint8_t*)module;
+    for (size_t i = 0; i < sizeOfImage - value_sz; ++i)
+    {
+        uint8_t* v = &scanBytes[i];
+        if (memcmp(v, value, value_sz) == 0)
+        {
+            return v;
+        }
+    }
+    return 0;
+}
+
 extern int sysctl(const int* name, unsigned int namelen, void* oldp, size_t* oldlenp, const void* newp, size_t newlen);
 
 // https://github.com/idc/ps4-experiments-405/blob/361738a2ee8a0fd32090c80bd2b49dae94ff08a5/hostapp_launch_patcher/source/patch.c#L57
@@ -444,7 +458,7 @@ uintptr_t pid_chunk_scan(const int pid, const uintptr_t mem_start, const uintptr
     uint8_t mem[chunk_size];
     for (size_t i = 0; i < (mem_sz - chunk_size); i += chunk_size)
     {
-        if (0 && i % (chunk_size * 8))
+        if (i % (chunk_size * 8))
         {
             debug_printf("scanning pid %d (%lu/%lu) mem 0x%p\n", pid, i, mem_sz, mem);
         }
@@ -478,35 +492,29 @@ uintptr_t pid_chunk_scan(const int pid, const uintptr_t mem_start, const uintptr
 
 uintptr_t* findSymbolPtrInEboot(const char* module, const char* symbol_name)
 {
-    here();
     uintptr_t symbol = 0;
     if (!symbol_name)
     {
         return 0;
     }
     {
-    here();
         const int handle = sceKernelLoadStartModule(module, 0, 0, 0, 0, 0);
         printf("%s load 0x%08x\n", module, handle);
         if (handle > 0)
         {
-    here();
             sceKernelDlsym(handle, symbol_name, (void**)&symbol);
-            //printf("symbol %s resolved to %lx (real %lx)\n", symbol_name, symbol, *(uintptr_t*)0x00f3a9e8);
+            printf("symbol %s resolved to %lx\n", symbol_name, symbol);
         }
-    here();
     }
     if (!symbol)
     {
         return 0;
     }
-    here();
     struct OrbisKernelModuleInfo info = {0};
     info.size = sizeof(info);
     const int r = sceKernelGetModuleInfo(0, &info);
     printf("sceKernelGetModuleInfoEx 0x%08x\n", r);
     uintptr_t* p = 0;
-    here();
     if (r == 0)
     {
         const uint32_t mm = 0;
@@ -526,7 +534,6 @@ uintptr_t* findSymbolPtrInEboot(const char* module, const char* symbol_name)
             printf("found %s at 0x%p -> 0x%lx\n", symbol_name, p, symbol);
         }
     }
-    here();
     return p;
 }
 
@@ -663,9 +670,10 @@ uintptr_t CreatePrologueHook(const uintptr_t address, const int min_instruction_
     sys_proc_rw(pid, ucavePadNew + int_size, &JMPstub, addroffset, 1);
     sys_proc_rw(pid, ucavePadNew + int_size + addroffset, &retaddr, sizeof(retaddr), 1);
     const uintptr_t caveAddr = ucavePad + caveInstSize;
-    caveInstSize += int_size + (sizeof(JMPstub) + sizeof(uintptr_t));
+    const uint64_t new_cave_size = int_size + (sizeof(JMPstub) + sizeof(uintptr_t));
+    caveInstSize += new_cave_size;
     printf("New caveInstSize: %ld\n", caveInstSize);
-    hex_dump(caveAddr, caveInstSize, caveAddr);
+    hex_dump(caveAddr, new_cave_size, caveAddr);
     return caveAddr;
 }
 

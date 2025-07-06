@@ -40,8 +40,7 @@ jobs:
       uses: actions/checkout@main
       with:
         path: ${{ env.hen_path }}
-        repository: ciss84/ps4-hen-vtxv4
-        ref: 4599f84e05c2fc134abdf6af9d5f58e483b42f83
+        repository: Scene-Collective/ps4-hen
 
     - name: Setup variables
       run: |
@@ -70,7 +69,7 @@ jobs:
     - name: Build modules
       run: |
         make -C plugin_example
-        make -C plugin_mono DEBUG=1
+        make -C plugin_mono
         make -C plugin_server
 
     - name: Zip
@@ -101,7 +100,13 @@ jobs:
         path: |
           ${{ github.workspace }}/${{ env.zip_glob_path }}/${{ env.zip_glob }}
           ${{ github.workspace }}/LICENSE
-          ${{ env.hen_path }}/hen.bin
+
+    - name: Upload HEN with built plugins
+      if: github.event_name != 'push'
+      uses: actions/upload-artifact@main
+      with:
+        name: hen-plugins-${{ env.build_tag }}
+        path: ${{ env.hen_path }}/hen.bin
 
     - name: Release
       if: github.event_name != 'pull_request'
