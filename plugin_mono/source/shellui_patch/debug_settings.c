@@ -1,5 +1,3 @@
-extern "C"
-{
 #include <stdint.h>
 #include "../../../common/plugin_common.h"
 #include "../../../common/stringid.h"
@@ -9,7 +7,6 @@ extern "C"
 #include "../mono.h"
 
 #include <pthread.h>
-}
 
 #define mnt_sus_path "/mnt/.."
 
@@ -31,13 +28,13 @@ void UploadDebugSettingsPatch(void)
     }
 }
 
-uiTYPEDEF_FUNCTION_PTR(void, PkgInstallerSearchDir_Original, void* _this, void* str, void* str2);
+uiTYPEDEF_FUNCTION_PTR(void, PkgInstallerSearchDir_Original, void* _this, MonoString* str, MonoString* str2);
 
 bool g_only_hdd = false;
 
 static void PkgInstallerSearchDir(void* _this, MonoString* str, MonoString* str2)
 {
-    constexpr uint64_t disc_sid = wSID(L"/disc");
+    const uint64_t disc_sid = 0xE992CF1CBC039673; // wSID(L"/disc");
     if (wSID(str->str) == disc_sid && g_only_hdd)
     {
         // search local hdd path
@@ -69,7 +66,7 @@ static int _DownloadRegisterTaskByStorageEx(void* bgft_params, int32_t* refout)
         if (strstr(curl, mnt_sus))
         {
             final_printf("before fixup %ls\n", bgft_params_u64->content_url->str);
-            bgft_params_u64->content_url = (MonoString*)Mono_New_String(curl + (sizeof(mnt_sus) - 1));
+            bgft_params_u64->content_url = Mono_New_String(curl + (sizeof(mnt_sus) - 1));
             final_printf("after fixup %ls\n", bgft_params_u64->content_url->str);
         }
     }

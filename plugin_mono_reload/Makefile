@@ -17,9 +17,9 @@ TARGETSTUB   := $(OUTPUT_PRX).so
 COMMON_DIR    := ../common
 
 # Libraries linked into the ELF.
-LIBS := -lSceLibcInternal -lkernel -lScePsm -lmonosgen -lSceRegMgr
+LIBS := -lSceLibcInternal -lkernel -lkernel_sys -lScePsm -lmonosgen -lSceRegMgr
 
-EXTRAFLAGS := -fvisibility=hidden -fshort-wchar $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall -Wno-unused-function -Wno-unused-const-variable
+EXTRAFLAGS := -fvisibility=hidden $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
 
 # You likely won't need to touch anything below this point.
 # Root vars
@@ -56,9 +56,6 @@ ifeq ($(UNAME_S),Darwin)
         CDIR    := macos
 endif
 
-bundle_data:
-	xxd -i data/hen_settings.xml | sed 's/^unsigned /static const unsigned /' > source/hen_settings.inc.c
-
 $(INTDIR):
 	mkdir -p $(INTDIR)
 
@@ -68,7 +65,7 @@ $(BUILD_FOLDER)/prx$(TYPE):
 $(BUILD_FOLDER)/elf$(TYPE):
 	mkdir -p $(BUILD_FOLDER)/elf$(TYPE)
 
-$(TARGET): bundle_data $(INTDIR) $(BUILD_FOLDER)/prx$(TYPE) $(BUILD_FOLDER)/elf$(TYPE) $(OBJS)
+$(TARGET): $(INTDIR) $(BUILD_FOLDER)/prx$(TYPE) $(BUILD_FOLDER)/elf$(TYPE) $(OBJS)
 	$(LD) $(INTDIR)/*.o -o $(TARGET_ELF).elf $(LDFLAGS)
 	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(TARGET_ELF).elf -out=$(TARGET_ELF).oelf --lib=$(TARGET).prx --paid 0x3800000000000011
 
@@ -107,4 +104,4 @@ send: $(TARGET)
 all: build-info $(TARGET)
 
 clean:
-	rm -rf $(PROJDIR)/*.inc.c $(TARGET) $(TARGETSTUB) $(INTDIR) $(OBJS)
+	rm -rf $(TARGET) $(TARGETSTUB) $(INTDIR) $(OBJS)
