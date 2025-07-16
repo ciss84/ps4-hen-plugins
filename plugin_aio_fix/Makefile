@@ -2,34 +2,31 @@
 
 DEBUG_FLAGS = -D__FINAL__=1
 LOG_TYPE = -D__USE_PRINTF__
-BUILD_TYPE = _final
 
 ifeq ($(DEBUG),1)
     DEBUG_FLAGS = -D__FINAL__=0
-    BUILD_TYPE = _debug
 endif
 
 TYPE         := $(BUILD_TYPE)
 FINAL        := $(DEBUG_FLAGS)
-BUILD_FOLDER := $(shell pwd)/../../bin/plugins
+BUILD_FOLDER := $(shell pwd)/../bin/plugins
 OUTPUT_PRX   := $(shell basename $(CURDIR))
 TARGET       := $(BUILD_FOLDER)/prx$(TYPE)/$(OUTPUT_PRX)
 TARGET_ELF   := $(BUILD_FOLDER)/elf$(TYPE)/$(OUTPUT_PRX)
 TARGETSTUB   := $(OUTPUT_PRX).so
+COMMON_DIR    := ../common
 
 # Libraries linked into the ELF.
-LIBS := -lSceLibcInternal -lGoldHEN_Hook -lkernel -lSceSysmodule
+LIBS := -lSceLibcInternal -lkernel
 
-EXTRAFLAGS := $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall
+EXTRAFLAGS := -fvisibility=hidden $(DEBUG_FLAGS) $(LOG_TYPE) -fcolor-diagnostics -Wall -Wno-unused-function
 
 # You likely won't need to touch anything below this point.
 # Root vars
 TOOLCHAIN     := $(OO_PS4_TOOLCHAIN)
-GH_SDK        := $(GOLDHEN_SDK)
 PROJDIR       := ../$(shell basename $(CURDIR))/source
 INTDIR        := ../$(shell basename $(CURDIR))/build
 INCLUDEDIR    := ../$(shell basename $(CURDIR))/include
-COMMON_DIR    := ../../common
 
 # Define objects to build
 CFILES      := $(wildcard $(PROJDIR)/*.c)
@@ -39,12 +36,9 @@ OBJS        := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $
 STUBOBJS    := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $(PROJDIR)/%.cpp, $(INTDIR)/%.o.stub, $(CPPFILES)) $(patsubst $(COMMONDIR)/%.cpp, $(INTDIR)/%.o.stub, $(COMMONFILES))
 
 # Define final C/C++ flags
-CFLAGS      := $(FINAL) --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(GH_SDK)/include -I$(INCLUDEDIR) -I$(COMMON_DIR) $(O_FLAG)
-CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/$(INCLUDEDIR)/c++/v1
-LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib -L$(GH_SDK) $(LIBS) 
-
-# Create the intermediate directory incase it doesn't already exist.
-_unused     := $(shell mkdir -p $(INTDIR))
+CFLAGS      := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include
+CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/include/c++/v1
+LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib $(LIBS) $(TOOLCHAIN)/lib/crtlib.o
 
 # Check for linux vs macOS and account for clang/ld path
 UNAME_S     := $(shell uname -s)
@@ -62,8 +56,17 @@ ifeq ($(UNAME_S),Darwin)
         CDIR    := macos
 endif
 
-$(TARGET): $(INTDIR) $(OBJS)
-	$(LD) $(GH_SDK)/build/crtprx.o $(INTDIR)/*.o -o $(TARGET_ELF).elf $(LDFLAGS)
+$(INTDIR):
+	mkdir -p $(INTDIR)
+
+$(BUILD_FOLDER)/prx$(TYPE):
+	mkdir -p $(BUILD_FOLDER)/prx$(TYPE)
+
+$(BUILD_FOLDER)/elf$(TYPE):
+	mkdir -p $(BUILD_FOLDER)/elf$(TYPE)
+
+$(TARGET): $(INTDIR) $(BUILD_FOLDER)/prx$(TYPE) $(BUILD_FOLDER)/elf$(TYPE) $(OBJS)
+	$(LD) $(INTDIR)/*.o -o $(TARGET_ELF).elf $(LDFLAGS)
 	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(TARGET_ELF).elf -out=$(TARGET_ELF).oelf --lib=$(TARGET).prx --paid 0x3800000000000011
 
 $(TARGETSTUB): $(INTDIR) $(STUBOBJS)
@@ -81,10 +84,14 @@ $(INTDIR)/%.o.stub: $(PROJDIR)/%.c
 $(INTDIR)/%.o.stub: $(PROJDIR)/%.cpp
 	$(CCX) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC $(O_FLAG) -s -c -o $@ $<
 
+send: $(TARGET)
+	curl -T $(TARGET).prx ftp://$(PS4_HOST):2121/data/hen/$(OUTPUT_PRX).prx
+
 build-info:
 	$(shell echo "#define GIT_COMMIT \"$(shell git rev-parse HEAD)\"" > $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_VER \"$(shell git branch --show-current)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define GIT_NUM $(shell git rev-list HEAD --count)" >> $(COMMON_DIR)/git_ver.h)
+	$(shell echo "#define GIT_NUM_STR \"$(shell git rev-list HEAD --count)\"" >> $(COMMON_DIR)/git_ver.h)
 	$(shell echo "#define BUILD_DATE \"$(shell date '+%b %d %Y @ %T')\"" >> $(COMMON_DIR)/git_ver.h)
 
 .PHONY: clean
