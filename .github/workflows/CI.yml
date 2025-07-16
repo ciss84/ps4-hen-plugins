@@ -72,7 +72,8 @@ jobs:
         make -C plugin_mono
         make -C plugin_shellcore
         make -C plugin_server
-
+        make -C plugin_aio_fix
+        
     - name: Zip
       working-directory: ${{ env.zip_glob_path }}
       run: 7z a ${{ env.zip }} ${{ env.zip_glob }} ${{ github.workspace }}/LICENSE
