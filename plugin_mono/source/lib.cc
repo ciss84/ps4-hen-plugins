@@ -1,3 +1,6 @@
+extern "C"
+{
+
 #include "../../common/entry.h"
 
 #include <stdint.h>
@@ -49,6 +52,26 @@ static void open_console(void)
     }
 }
 
+static void MainThreadCheck(void)
+{
+    const char* sandbox_path = sceKernelGetFsSandboxRandomWord();
+    if (sandbox_path)
+    {
+        char core_dll[260] = {};
+        snprintf(core_dll, sizeof(core_dll), "/%s/common/lib/Sce.PlayStation.Core.dll", sandbox_path);
+        void* ptr = mono_get_image(core_dll);
+        if (ptr)
+        {
+            void* check = Mono_Get_Address_of_Method(ptr, "Sce.PlayStation.Core.Runtime", "Diagnostics", "CheckRunningOnMainThread", 0);
+            if (check)
+            {
+                uint8_t ret = 0xc3;
+                sys_proc_rw(getpid(), (uintptr_t)check, &ret, sizeof(ret), 1);
+            }
+        }
+    }
+}
+
 void PrintTimeTick(void)
 {
     static bool once = false;
@@ -61,7 +84,7 @@ void PrintTimeTick(void)
             if (app_exe)
             {
                 App_Exe = app_exe;
-                void (*createDevKitPanel)(void*) = (void*)Mono_Get_Address_of_Method(app_exe, "Sce.Vsh.ShellUI.TopMenu", "AreaManager", "createDevKitPanel", 0);
+                void (*createDevKitPanel)(void*) = (void (*)(void*))Mono_Get_Address_of_Method(app_exe, "Sce.Vsh.ShellUI.TopMenu", "AreaManager", "createDevKitPanel", 0);
                 printf("createDevKitPanel 0x%p\n", createDevKitPanel);
                 if (createDevKitPanel)
                 {
@@ -71,6 +94,7 @@ void PrintTimeTick(void)
             UploadNewCorelibStreamReader();
             UploadNewPkgInstallerPath(App_Exe);
             UploadOnBranch(App_Exe);
+            MainThreadCheck();
         }
         once = true;
     }
@@ -171,6 +195,7 @@ attr_public int plugin_load(struct SceEntry* args)
 {
     mkdir(BASE_PATH, 0777);
     mkdir(SHELLUI_DATA_PATH, 0777);
+    mkdir(USER_PLUGIN_PATH, 0777);
     write_file(SHELLUI_HEN_SETTINGS, data_hen_settings_xml, data_hen_settings_xml_len);
     open_console();
     printf("====\n\nHello from mono module\n\n====\n");
@@ -185,3 +210,4 @@ attr_public int plugin_load(struct SceEntry* args)
     return 0;
 }
 
+}
