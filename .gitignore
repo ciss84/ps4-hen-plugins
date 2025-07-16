@@ -48,6 +48,3 @@ common/git_ver.h
 
 **/.vscode
 **/.vs
-
-# reload plugin
-plugin_mono_reload
